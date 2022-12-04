@@ -31,9 +31,48 @@ namespace CppDoc
             this.InitializeComponent();
         }
 
-        private void myButton_Click(object sender, RoutedEventArgs e)
+        readonly Dictionary<string, Type> pageMap = new Dictionary<string, Type> {
+            { "CppReference", typeof(CppReferencePage) },
+            { "CompilerExplorer", typeof(CompilerExplorerPage) },
+        };
+
+        private void contentFrame_Navigated(object sender, NavigationEventArgs e)
         {
-            myButton.Content = "Clicked";
+            navigation.IsBackEnabled = contentFrame.CanGoBack;
+
+            if (contentFrame.SourcePageType == typeof(SettingsPage))
+            {
+                // SettingsItem is not part of NavView.MenuItems, and doesn't have a Tag.
+                navigation.SelectedItem = navigation.SettingsItem;
+            }
+            else if (contentFrame.SourcePageType != null)
+            {
+                navigation.SelectedItem = navigation.MenuItems
+                    .OfType<NavigationViewItem>()
+                    .First(n => n.Tag.Equals(pageMap.First(kv => kv.Value == contentFrame.SourcePageType).Key));
+            }
+
+            navigation.Header = ((NavigationViewItem)navigation.SelectedItem)?.Content?.ToString();
+        }
+
+        private void navigation_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
+        {
+            if (contentFrame.CanGoBack) contentFrame.GoBack();
+        }
+
+        private void navigation_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        {
+            if (args.IsSettingsSelected == true)
+            {
+                contentFrame.Navigate(typeof(SettingsPage));
+            }
+            else
+            {
+                var selectedItem = (NavigationViewItem)args.SelectedItem;
+                string selectedItemTag = (string)selectedItem.Tag;
+                Type pageType = pageMap[selectedItemTag];
+                contentFrame.Navigate(pageType, null, args.RecommendedNavigationTransitionInfo);
+            }
         }
     }
 }

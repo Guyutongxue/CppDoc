@@ -9,8 +9,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Button x:Name="myButton" Click="myButton_Click">Click Me</Button>
-    </StackPanel>
+    <NavigationView x:Name="navigation"
+                    BackRequested="navigation_BackRequested" SelectionChanged="navigation_SelectionChanged">
+        <NavigationView.MenuItems>
+            <NavigationViewItem Icon="Play" Content="C++ 参考" Tag="CppReference" />
+            <NavigationViewItem Icon="Save" Content="编译浏览器" Tag="CompilerExplorer" />
+        </NavigationView.MenuItems>
+        <Frame x:Name="contentFrame" Navigated="contentFrame_Navigated"/>
+    </NavigationView>
 </Window>
