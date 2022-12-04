@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CppDoc (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "CppDoc (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
