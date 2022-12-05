@@ -15,6 +15,8 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using CppDoc.Pages;
+using CppDoc.Controls;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -29,6 +31,8 @@ namespace CppDoc
         public MainWindow()
         {
             this.InitializeComponent();
+            navigation.Header = CppReferenceHeader.HomePage();
+            contentFrame.Navigate(typeof(CppReferencePage), null, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
         }
 
         readonly Dictionary<string, Type> pageMap = new Dictionary<string, Type> {
@@ -51,8 +55,7 @@ namespace CppDoc
                     .OfType<NavigationViewItem>()
                     .First(n => n.Tag.Equals(pageMap.First(kv => kv.Value == contentFrame.SourcePageType).Key));
             }
-
-            navigation.Header = ((NavigationViewItem)navigation.SelectedItem)?.Content?.ToString();
+            // ((NavigationViewItem)navigation.SelectedItem)?.Content?.ToString();
         }
 
         private void navigation_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
@@ -72,6 +75,18 @@ namespace CppDoc
                 string selectedItemTag = (string)selectedItem.Tag;
                 Type pageType = pageMap[selectedItemTag];
                 contentFrame.Navigate(pageType, null, args.RecommendedNavigationTransitionInfo);
+            }
+        }
+
+        public static NavigationView? GetNavigationView(Page page)
+        {
+            if (page.Frame.XamlRoot?.Content is NavigationView nv)
+            {
+                return nv;
+            }
+            else
+            {
+                return null;
             }
         }
     }

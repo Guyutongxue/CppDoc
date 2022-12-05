@@ -1,0 +1,27 @@
+<!-- Copyright (c) Microsoft Corporation and Contributors. -->
+<!-- Licensed under the MIT License. -->
+
+<UserControl
+    x:Class="CppDoc.Controls.CppReferenceIndex"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CppDoc.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <AutoSuggestBox x:Name="suggestBox" 
+                    FontFamily="Consolas"
+                    PlaceholderText="搜索"
+                    QueryIcon="Find"
+                    UpdateTextOnSelect="False"
+                    TextChanged="suggestBox_TextChanged"
+                    SuggestionChosen="suggestBox_SuggestionChosen"
+                    QuerySubmitted="suggestBox_QuerySubmitted">
+        <AutoSuggestBox.ItemTemplate>
+            <DataTemplate x:DataType="local:IndexItem">
+                <TextBlock Text="{x:Bind Name}"></TextBlock>
+            </DataTemplate>
+        </AutoSuggestBox.ItemTemplate>
+    </AutoSuggestBox>
+</UserControl>

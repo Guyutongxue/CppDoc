@@ -15,11 +15,13 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using CppDoc.Controls;
+using Windows.Devices.Enumeration;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace CppDoc
+namespace CppDoc.Pages
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
@@ -29,6 +31,14 @@ namespace CppDoc
         public CompilerExplorerPage()
         {
             this.InitializeComponent();
+        }
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            if (MainWindow.GetNavigationView(this) is NavigationView nv)
+            {
+                nv.Header = null;
+            }
         }
     }
 }

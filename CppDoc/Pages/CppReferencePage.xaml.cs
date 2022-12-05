@@ -16,11 +16,12 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Documents;
+using CppDoc.Controls;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace CppDoc
+namespace CppDoc.Pages
 {
     public class CppReferenceNavigateParameter
     {
@@ -40,21 +41,54 @@ namespace CppDoc
         public CppReferencePage()
         {
             this.InitializeComponent();
-            var text = new Italic();
-            text.Inlines.Add(new Run() { Text = "italic text..." });
-            var link = new Hyperlink();
-            link.Inlines.Add(new Run() { Text = "click me" });
-            link.Click += (_, _) => { Frame.Navigate(typeof(CppReferencePage), new CppReferenceNavigateParameter("another")); };
-            textBlock.Inlines.Add(text);
-            textBlock.Inlines.Add(link);
+            searchBox.IndexChosen += NavigateByLink;
+            //var text = new Italic();
+            //text.Inlines.Add(new Run() { Text = "italic text..." });
+            //var link = new Hyperlink();
+            //link.Inlines.Add(new Run() { Text = "click me" });
+            //link.Click += (_, _) => { Frame.Navigate(typeof(CppReferencePage), new CppReferenceNavigateParameter("another")); };
+            //textBlock.Blocks.Add(text);
+            //textBlock.Blocks.Add(link);
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        void NavigateByLink(object sender, IndexChosenEventArgs e)
         {
-            if (e.Parameter is CppReferenceNavigateParameter p) {
-                textBlock.Inlines.Add(new Run() { Text = p.PageLink });
+            Frame.Navigate(typeof(CppReferencePage), new CppReferenceNavigateParameter(e.Link));
+        }
+
+        void SetHeader(CppReferenceHeader header)
+        {
+            var nv = MainWindow.GetNavigationView(this);
+            if (nv is not null)
+            {
+                header.IndexChosen += NavigateByLink;
+                nv.Header = header;
             }
+        }
+
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        {
             base.OnNavigatedTo(e);
+            if (e.Parameter is CppReferenceNavigateParameter p)
+            {
+                var doc = await CppRefDocumentFactory.Create(p.PageLink);
+                if (doc is CppRefLibraryDocument ld)
+                {
+                    SetHeader(CppReferenceHeader.LibraryNamePage(ld.GetTitle(), ld.GetPrefix()));
+                } else
+                {
+                    SetHeader(CppReferenceHeader.CorePage(p.PageLink));
+                }
+                foreach (var ele in doc.Parse())
+                {
+                    panel.Children.Add(ele);
+                }
+            }
+            else if (e.Parameter is null)
+            {
+                searchBox.Visibility = Visibility.Visible;
+                SetHeader(CppReferenceHeader.HomePage());
+            }
         }
     }
 }

@@ -1,7 +1,8 @@
 {
   "profiles": {
     "CppDoc (Package)": {
-      "commandName": "MsixPackage"
+      "commandName": "MsixPackage",
+      "nativeDebugging": false
     },
     "CppDoc (Unpackaged)": {
       "commandName": "Project"

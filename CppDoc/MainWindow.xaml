@@ -10,7 +10,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <NavigationView x:Name="navigation"
-                    BackRequested="navigation_BackRequested" SelectionChanged="navigation_SelectionChanged">
+                    BackRequested="navigation_BackRequested" 
+                    SelectionChanged="navigation_SelectionChanged">
         <NavigationView.MenuItems>
             <NavigationViewItem Icon="Play" Content="C++ 参考" Tag="CppReference" />
             <NavigationViewItem Icon="Save" Content="编译浏览器" Tag="CompilerExplorer" />
