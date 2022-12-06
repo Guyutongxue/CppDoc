@@ -15,35 +15,30 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using CppDoc.Parser;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace CppDoc.Controls
 {
-    public enum CppReferenceHeaderType
-    {
-        Home,
-        LibraryName,
-        Core
-    }
 
     public sealed partial class CppReferenceHeader : UserControl
     {
-        public CppReferenceHeader(CppReferenceHeaderType type, string title, string prefix = "")
+        public CppReferenceHeader(CppRefDocumentType type, string title, string prefix = "")
         {
             Type = type;
             Prefix = prefix;
             Title = title;
             this.InitializeComponent();
-            if (Type == CppReferenceHeaderType.Home)
+            if (Type == CppRefDocumentType.Home)
             {
                 searchBox.Visibility = Visibility.Collapsed;
             } else
             {
                 searchBox.IndexChosen += (o, e) => IndexChosen?.Invoke(o, e);
             }
-            if (Type == CppReferenceHeaderType.LibraryName)
+            if (Type == CppRefDocumentType.LibraryName)
             {
                 textBlockTitle.FontFamily = new FontFamily("Consolas");
             }
@@ -53,19 +48,20 @@ namespace CppDoc.Controls
 
         public string Prefix { get; set; }
         public string Title { get; set; }
-        public CppReferenceHeaderType Type { get; set; }
+        public CppRefDocumentType Type { get; set; }
 
-        public static CppReferenceHeader HomePage()
+        public static CppReferenceHeader CreateHome()
         {
-            return new CppReferenceHeader(CppReferenceHeaderType.Home, "CppReference.com");
+            return new CppReferenceHeader(CppRefDocumentType.Home, "CppReference.com");
         }
-        public static CppReferenceHeader CorePage(string coreTitle)
+        public static CppReferenceHeader Create(ICppRefDocument doc)
         {
-            return new CppReferenceHeader(CppReferenceHeaderType.Core, coreTitle);
-        }
-        public static CppReferenceHeader LibraryNamePage(string librayName, string? prefix)
-        {
-            return new CppReferenceHeader(CppReferenceHeaderType.LibraryName, librayName, prefix ?? "");
+            return doc.Type switch
+            {
+                CppRefDocumentType.Home => CreateHome(),
+                CppRefDocumentType.LibraryName => new CppReferenceHeader(CppRefDocumentType.LibraryName, doc.GetTitle(), doc.GetPrefix() ?? ""),
+                _ => new CppReferenceHeader(CppRefDocumentType.Other, doc.GetTitle())
+            };
         }
     }
 }

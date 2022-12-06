@@ -17,6 +17,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Documents;
 using CppDoc.Controls;
+using CppDoc.Parser;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -30,6 +31,11 @@ namespace CppDoc.Pages
         {
             PageLink = pageLink;
         }
+
+        public override string ToString()
+        {
+            return PageLink;
+        }
     }
 
 
@@ -38,6 +44,8 @@ namespace CppDoc.Pages
     /// </summary>
     public sealed partial class CppReferencePage : Page
     {
+        static public string? CurrentLink { get; private set; }
+
         public CppReferencePage()
         {
             this.InitializeComponent();
@@ -69,25 +77,26 @@ namespace CppDoc.Pages
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            if (e.Parameter is CppReferenceNavigateParameter p)
+            var newLink = (e.Parameter as CppReferenceNavigateParameter)?.PageLink;
+            CurrentLink = newLink;
+            if (newLink is null)
             {
-                var doc = await CppRefDocumentFactory.Create(p.PageLink);
-                if (doc is CppRefLibraryDocument ld)
-                {
-                    SetHeader(CppReferenceHeader.LibraryNamePage(ld.GetTitle(), ld.GetPrefix()));
-                } else
-                {
-                    SetHeader(CppReferenceHeader.CorePage(p.PageLink));
-                }
+                searchBox.Visibility = Visibility.Visible;
+                SetHeader(CppReferenceHeader.CreateHome());
+            }
+            else
+            {
+                var doc = await CppRefDocumentFactory.Create(Frame, newLink);
+                SetHeader(CppReferenceHeader.Create(doc));
                 foreach (var ele in doc.Parse())
                 {
                     panel.Children.Add(ele);
                 }
-            }
-            else if (e.Parameter is null)
-            {
-                searchBox.Visibility = Visibility.Visible;
-                SetHeader(CppReferenceHeader.HomePage());
+                panel.Children.Add(new HyperlinkButton
+                {
+                    Content = "原网页",
+                    NavigateUri = new Uri($"https://zh.cppreference.com/w/{newLink}")
+                });
             }
         }
     }

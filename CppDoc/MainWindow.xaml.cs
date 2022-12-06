@@ -31,13 +31,15 @@ namespace CppDoc
         public MainWindow()
         {
             this.InitializeComponent();
-            navigation.Header = CppReferenceHeader.HomePage();
+            navigation.Header = CppReferenceHeader.CreateHome();
             contentFrame.Navigate(typeof(CppReferencePage), null, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
         }
 
-        readonly Dictionary<string, Type> pageMap = new Dictionary<string, Type> {
+        readonly Dictionary<string, Type> pageMap = new()
+        {
             { "CppReference", typeof(CppReferencePage) },
             { "CompilerExplorer", typeof(CompilerExplorerPage) },
+            { "CppInsights", typeof(CppInsightsPage) }
         };
 
         private void contentFrame_Navigated(object sender, NavigationEventArgs e)

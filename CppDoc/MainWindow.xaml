@@ -13,8 +13,9 @@
                     BackRequested="navigation_BackRequested" 
                     SelectionChanged="navigation_SelectionChanged">
         <NavigationView.MenuItems>
-            <NavigationViewItem Icon="Play" Content="C++ 参考" Tag="CppReference" />
-            <NavigationViewItem Icon="Save" Content="编译浏览器" Tag="CompilerExplorer" />
+            <NavigationViewItem Icon="Library" Content="C++ 参考" Tag="CppReference" />
+            <NavigationViewItem Icon="Globe" Content="编译浏览器" Tag="CompilerExplorer" />
+            <NavigationViewItem Icon="Zoom" Content="C++ 洞察器" Tag="CppInsights" />
         </NavigationView.MenuItems>
         <Frame x:Name="contentFrame" Navigated="contentFrame_Navigated"/>
     </NavigationView>

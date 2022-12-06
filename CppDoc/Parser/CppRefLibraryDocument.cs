@@ -1,27 +1,21 @@
-
-using AngleSharp;
 using AngleSharp.Dom;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CppDoc
+namespace CppDoc.Parser
 {
-    public interface ICppRefDocument
+    public class CppRefLibraryDocument : CppRefDocumentBase, ICppRefDocument
     {
-        public List<UIElement> Parse();
-    }
+        public CppRefDocumentType Type { get; } = CppRefDocumentType.LibraryName;
 
-    public class CppRefLibraryDocument : ICppRefDocument
-    {
         IElement content;
-        public CppRefLibraryDocument(IElement content)
+        public CppRefLibraryDocument(Frame frame, IElement content) : base(frame)
         {
             this.content = content;
         }
@@ -34,7 +28,6 @@ namespace CppDoc
         public string GetTitle()
         {
             var n = content.QuerySelector("#firstHeading")?.Clone();
-            System.Diagnostics.Debug.WriteLine(n.Text());
             if (n is IElement e)
             {
                 foreach (var s in e.QuerySelectorAll("span"))
@@ -52,8 +45,7 @@ namespace CppDoc
         public List<UIElement> Parse()
         {
             var elements = new List<UIElement>();
-            var rtb = new RichTextBlock();
-            var article = content.QuerySelector("#bodyContent");
+            var article = content.QuerySelector("#mw-content-text");
             if (article is null)
             {
                 throw new ArgumentNullException();
@@ -74,7 +66,7 @@ namespace CppDoc
                     if (tds.Length < 3) continue;
                     for (int j = 0; j < 3; j++)
                     {
-                        var tb = new TextBlock() { Text = tds[j].Text() };
+                        var tb = new TextBlock() { Text = tds[j].TextContent };
                         if (j == 0)
                         {
                             tb.FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas");
@@ -87,39 +79,8 @@ namespace CppDoc
                 elements.Add(grid);
                 beginTable.Remove();
             }
-            foreach (var e in article.QuerySelectorAll("p"))
-            {
-                var paragraph = new Paragraph();
-                paragraph.Inlines.Add(new Run() { Text = e.Text() });
-                rtb.Blocks.Add(paragraph);
-            }
-            elements.Add(rtb);
+            elements.Add(ParseParagraphs(article));
             return elements;
-        }
-    }
-
-    static public class CppRefDocumentFactory
-    {
-        static public async Task<ICppRefDocument> Create(string link)
-        {
-            var config = Configuration.Default.WithDefaultLoader();
-            var context = BrowsingContext.New(config);
-            var doc = await context.OpenAsync("https://zh.cppreference.com/w/" + link);
-            if (doc is null)
-            {
-                throw new Exception("Open link failed");
-            }
-            var main = doc.QuerySelector("#content");
-            if (main is null)
-            {
-                throw new ArgumentNullException();
-            }
-            foreach (var e in main.QuerySelectorAll(".editsection"))
-            {
-                e.Remove();
-            }
-            var page = new CppRefLibraryDocument(main);
-            return page;
         }
     }
 
