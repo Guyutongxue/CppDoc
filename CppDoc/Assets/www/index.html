@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+        <title>Monaco editor</title>
+        <link
+            rel="stylesheet"
+            data-name="vs/editor/editor.main"
+            href="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/editor/editor.main.min.css"
+        >
+    </head>
+    <body style="margin: 0">
+        <script>
+            var editor;
+            async function setCode(v) {
+                console.log(v);
+                await loaded;
+                editor.setValue(v);
+            }
+            function getCode() {
+                return editor?.getValue() ?? null;
+            }
+        </script>
+        <div
+            id="container"
+            style="height: 100vh;"
+        ></div>
+        <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.min.js"></script>
+        <script>
+            // require is provided by loader.min.js.
+            require.config({
+                paths: {
+                    vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs",
+                },
+            });
+            var loaded = new Promise(r => {
+                require(["vs/editor/editor.main"], () => {
+                    const search = new URLSearchParams(location.search);
+                    let code = search.get("code") ?? "";
+                    editor = monaco.editor.create(document.getElementById("container"), {
+                        value: code,
+                        language: "cpp",
+                        automaticLayout: true
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>

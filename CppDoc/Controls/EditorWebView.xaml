@@ -10,9 +10,22 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-
-    <WebView2 x:Name="webview" 
-                  Source="https://microsoft.github.io/monaco-editor" 
+    <Grid MinHeight="400" MinWidth="600" HorizontalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <WebView2 x:Name="webview" 
                   HorizontalAlignment="Stretch" 
                   VerticalAlignment="Stretch"></WebView2>
+        <StackPanel Grid.Column="1">
+            <Button x:Name="buttonCompile" Click="Compile">Compile</Button>
+            <TextBlock x:Name="textBlockOut"
+                       FontFamily="Consolas"
+                       TextWrapping="Wrap"></TextBlock>
+        </StackPanel>
+    </Grid>
 </UserControl>

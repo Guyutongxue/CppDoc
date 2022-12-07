@@ -13,14 +13,5 @@
 
     <Grid>
         <WebView2 Source="https://godbolt.org"></WebView2>
-        <!--<Grid.RowDefinitions>
-            <RowDefinition Height="*"></RowDefinition>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <local:EditorWebView Grid.Row="0" Grid.Column="0"></local:EditorWebView>
-        <TextBlock Grid.Row="0" Grid.Column="1">CompilerExplorer Page</TextBlock>-->
     </Grid>
 </Page>

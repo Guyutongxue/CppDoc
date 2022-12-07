@@ -35,8 +35,14 @@ namespace CppDoc.Parser
         public List<UIElement> Parse()
         {
             var elements = new List<UIElement>();
+            var article = content.QuerySelector("#mw-content-text");
+            if (article is null)
+            {
+                throw new ArgumentNullException();
+            }
+            article.QuerySelector("#toc")?.Remove();
 
-            elements.Add(ParseParagraphs(content));
+            elements.Add(ParseParagraphs(article));
             return elements;
         }
     }

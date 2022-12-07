@@ -66,10 +66,24 @@ namespace CppDoc.Parser
                     if (tds.Length < 3) continue;
                     for (int j = 0; j < 3; j++)
                     {
-                        var tb = new TextBlock() { Text = tds[j].TextContent };
-                        if (j == 0)
+                        var tb = new TextBlock();
+                        if (j == 0 && tr.ClassList.Contains("t-dsc-header"))
                         {
-                            tb.FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas");
+                            foreach (var inline in ParseInlines(tds[j].QuerySelector("div")!))
+                            {
+                                tb.Inlines.Add(inline);
+                            }
+                        } else
+                        {
+                            tb.Text = tds[j].TextContent;
+                            if (j == 0)
+                            {
+                                tb.FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas");
+                            }
+                            if (j == 2)
+                            {
+                                tb.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.DarkGreen);
+                            }
                         }
                         grid.Children.Add(tb);
                         Grid.SetRow(tb, i);

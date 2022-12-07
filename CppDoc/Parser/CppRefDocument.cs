@@ -42,6 +42,17 @@ namespace CppDoc.Parser
             this.frame = frame;
         }
 
+        static public string HrefToNavigateLink(string href)
+        {
+            var pageLink = href[3..];
+            var hashIndex = pageLink.IndexOf('#');
+            if (hashIndex != -1)
+            {
+                pageLink = pageLink[..hashIndex];
+            }
+            return pageLink;
+        }
+
         protected RichTextBlock ParseParagraphs(IElement article)
         {
             var rtb = new RichTextBlock() { Padding = new Thickness(0) };
@@ -96,9 +107,15 @@ namespace CppDoc.Parser
                         para.FontSize = 20;
                         para.Margin = new Thickness(0, 20, 0, 10);
                         rtb.Blocks.Add(para);
-                    } else if (e.TagName == "TABLE" && e.ClassList.Contains("t-dsc-begin"))
+                    } 
+                    else if (e.TagName == "TABLE" && e.ClassList.Contains("t-dsc-begin"))
                     {
                         rtb.Blocks.Add(ParseDescTable(e));
+                    }
+                    else if (e.ClassList.Contains("t-example"))
+                    {
+                        var code = e.QuerySelector(".cpp")?.TextContent.Trim().Replace('\xa0', ' ') ?? "";
+                        rtb.Blocks.Add(UIElementToParagraph(new EditorWebView(code)));
                     }
                 }
             }
@@ -187,14 +204,9 @@ namespace CppDoc.Parser
                     {
                         if (href.Value.StartsWith("/w/cpp"))
                         {
-                            var pageLink = href.Value[3..];
-                            var hashIndex = pageLink.IndexOf('#');
-                            if (hashIndex != -1)
-                            {
-                                pageLink = pageLink[..hashIndex];
-                            }
                             a.Click += (sender, _) =>
                             {
+                                string pageLink = HrefToNavigateLink(href.Value);
                                 if (CppReferencePage.CurrentLink != pageLink)
                                 {
                                     frame.Navigate(typeof(CppReferencePage), new CppReferenceNavigateParameter(pageLink));
@@ -203,7 +215,7 @@ namespace CppDoc.Parser
                         }
                         else
                         {
-                            var baseUri = new Uri("https://zh.cppreference.com");
+                            var baseUri = new Uri($"https://{SettingsPage.GetLanguage()}.cppreference.com");
                             a.NavigateUri = new Uri(baseUri, href.Value);
                         }
                     }
@@ -224,7 +236,7 @@ namespace CppDoc.Parser
             }
         }
 
-        private List<Inline> ParseInlines(IElement? p)
+        protected List<Inline> ParseInlines(IElement? p)
         {
             var inlineList = new List<Inline>();
             if (p is null) return inlineList;
@@ -237,7 +249,7 @@ namespace CppDoc.Parser
 
         private Paragraph ParseDescTable(IElement p)
         {
-            return UIElementToParagraph(new CppReferenceDescriptionList(p));
+            return UIElementToParagraph(new CppReferenceDescriptionList(frame, p));
         }
     }
 
@@ -247,7 +259,7 @@ namespace CppDoc.Parser
         {
             var config = Configuration.Default.WithDefaultLoader();
             var context = BrowsingContext.New(config);
-            var doc = await context.OpenAsync("https://zh.cppreference.com/w/" + link);
+            var doc = await context.OpenAsync($"https://{SettingsPage.GetLanguage()}.cppreference.com/w/" + link);
             if (doc is null)
             {
                 throw new Exception("Open link failed");

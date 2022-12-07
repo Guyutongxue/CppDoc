@@ -42,7 +42,8 @@ namespace CppDoc
         {
             { "CppReference", typeof(CppReferencePage) },
             { "CompilerExplorer", typeof(CompilerExplorerPage) },
-            { "CppInsights", typeof(CppInsightsPage) }
+            { "CppInsights", typeof(CppInsightsPage) },
+            { "Editor", typeof(EditorPage) },
         };
 
         private void contentFrame_Navigated(object sender, NavigationEventArgs e)
@@ -60,7 +61,6 @@ namespace CppDoc
                     .OfType<NavigationViewItem>()
                     .First(n => n.Tag.Equals(pageMap.First(kv => kv.Value == contentFrame.SourcePageType).Key));
             }
-            // ((NavigationViewItem)navigation.SelectedItem)?.Content?.ToString();
         }
 
         private void navigation_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)

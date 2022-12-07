@@ -95,7 +95,7 @@ namespace CppDoc.Pages
                 panel.Children.Add(new HyperlinkButton
                 {
                     Content = "原网页",
-                    NavigateUri = new Uri($"https://zh.cppreference.com/w/{newLink}")
+                    NavigateUri = new Uri($"https://{SettingsPage.GetLanguage()}.cppreference.com/w/{newLink}")
                 });
             }
         }

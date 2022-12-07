@@ -30,9 +30,25 @@ namespace CppDoc
         {
             this.InitializeComponent();
         }
-        private void myButton_Click(object sender, RoutedEventArgs e)
+
+        private string MapLanguage(string? lang)
         {
-            myButton.Content = "Clicked";
+            return lang switch
+            {
+                "中文" => "zh",
+                _ => "en"
+            };
+        }
+
+        static public string GetLanguage()
+        {
+            return Windows.Storage.ApplicationData.Current.LocalSettings.Values["language"] as string ?? "en";
+        }
+
+        private void languageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var lang = e.AddedItems[0].ToString();
+            Windows.Storage.ApplicationData.Current.LocalSettings.Values["language"] = MapLanguage(lang);
         }
     }
 }

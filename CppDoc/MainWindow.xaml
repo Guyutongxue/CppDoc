@@ -14,6 +14,7 @@
                     SelectionChanged="navigation_SelectionChanged">
         <NavigationView.MenuItems>
             <NavigationViewItem Icon="Library" Content="C++ 参考" Tag="CppReference" />
+            <NavigationViewItem Icon="Edit" Content="C++ 在线编译" Tag="Editor" />
             <NavigationViewItem Icon="Globe" Content="编译浏览器" Tag="CompilerExplorer" />
             <NavigationViewItem Icon="Zoom" Content="C++ 洞察器" Tag="CppInsights" />
         </NavigationView.MenuItems>

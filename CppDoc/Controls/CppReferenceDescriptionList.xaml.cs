@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using AngleSharp.Dom;
+using CppDoc.Pages;
+using CppDoc.Parser;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -26,11 +28,28 @@ namespace CppDoc.Controls
 {
     public sealed partial class CppReferenceDescriptionList : UserControl
     {
-        public CppReferenceDescriptionList(IElement table)
+        Frame frame;
+        bool loaded = false;
+
+        public CppReferenceDescriptionList(Frame frame, IElement table)
         {
             this.InitializeComponent();
+            this.frame = frame;
             this.ContactsCVS.Source = GetItems(table);
+            new Task(() =>
+            {
+                System.Threading.Thread.Sleep(500);
+                loaded = true;
+            }).Start();
         }
+
+        static void SetMaxWidth(GroupInfoList list)
+        {
+            var width = list.Select(i => i.Names.MaxBy(s => s.Length)?.Length ?? 0).Max() * 16 + 80;
+            var gl = new GridLength(width);
+            list.ForEach(i => i.Width = gl);
+        }
+
         public static List<GroupInfoList> GetItems(IElement table)
         {
             var result = new List<GroupInfoList>();
@@ -40,7 +59,7 @@ namespace CppDoc.Controls
                 var tds = tr.QuerySelectorAll("td");
                 if (tds.Length == 1)
                 {
-                    var header = tr.QuerySelector("h5");
+                    var header = tr.QuerySelector(".mw-headline");
                     if (header is not null)
                     {
                         if (list.Key is null)
@@ -48,9 +67,11 @@ namespace CppDoc.Controls
                             list.Key = header.TextContent.Trim();
                         } else
                         {
+                            SetMaxWidth(list);
                             result.Add(list);
                             list = new GroupInfoList() { Key = header.TextContent.Trim() };
                         }
+                        System.Diagnostics.Debug.WriteLine(header.TextContent.Trim());
                     }
                 }
                 if (tds.Length == 2)
@@ -65,6 +86,10 @@ namespace CppDoc.Controls
                     {
                         item.Marks = tlines[1].Children.Select(e => e.TextContent.Trim()).ToList();
                     }
+                    if (leftTd.QuerySelector("a") is IElement a && a.Attributes["href"] is IAttr href)
+                    {
+                        item.Link = href.Value;
+                    }
                     var mark = rightTd.QuerySelector(".t-mark");
                     if (mark is not null)
                     {
@@ -77,6 +102,7 @@ namespace CppDoc.Controls
             }
             if (list.Count > 0)
             {
+                SetMaxWidth(list);
                 result.Add(list);
             }
             return result;
@@ -84,11 +110,25 @@ namespace CppDoc.Controls
 
         private void listView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ((ListView)sender).SelectedItem = null;
+            var list = (ListView)sender;
+            if (!loaded)
+            {
+
+                list.SelectedItem = null;
+                return;
+            }
+            if (list.SelectedItem is DescriptionItem item && item.Link is string link)
+            {
+                string pageLink = CppRefDocumentBase.HrefToNavigateLink(link);
+                if (CppReferencePage.CurrentLink != pageLink)
+                {
+                    frame.Navigate(typeof(CppReferencePage), new CppReferenceNavigateParameter(pageLink));
+                }
+            }
         }
     }
 
-    public class GroupInfoList : List<object>
+    public class GroupInfoList : List<DescriptionItem>
     {
         public GroupInfoList()
         {
@@ -101,9 +141,11 @@ namespace CppDoc.Controls
         public List<string> Names { get; set; } = new();
 
         public List<string> Marks { get; set; } = new();
-        public string Link { get; set; } = "";
+        public string? Link { get; set; }
         public string Description { get; set; } = "";
         public string Type { get; set; } = "";
+
+        public GridLength Width { get; set; } = GridLength.Auto;
 
     }
 }

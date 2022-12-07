@@ -23,37 +23,34 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="{x:Bind Width, Mode=OneWay}"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Grid.RowSpan="2" 
-                                 Margin="6"
-                                VerticalAlignment="Center">
-                        <ItemsRepeater ItemsSource="{x:Bind Names}">
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="x:String">
-                                    <TextBlock Text="{Binding {RelativeSource Self}}"
+                    <StackPanel Grid.RowSpan="2" Orientation="Horizontal" Margin="6">
+                        <StackPanel VerticalAlignment="Center">
+                            <ItemsRepeater ItemsSource="{x:Bind Names}">
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <TextBlock Text="{Binding {RelativeSource Self}}"
                                                Style="{ThemeResource BodyStrongTextBlockStyle}"
                                                Height="18"
                                                FontFamily="Consolas"/>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
-                    </StackPanel>
-                    <StackPanel Grid.RowSpan="2" 
-                                Grid.Column="1"
-                                Margin="6"
-                                VerticalAlignment="Center">
-                        <ItemsRepeater ItemsSource="{x:Bind Marks}">
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="x:String">
-                                    <TextBlock Text="{Binding {RelativeSource Self}}"
-                                               Height="18"
-                                               Foreground="DarkGreen"/>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                        <StackPanel VerticalAlignment="Center">
+                            <ItemsRepeater ItemsSource="{x:Bind Marks}">
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <TextBlock Text="{Binding {RelativeSource Self}}"
+                                                   Margin="6,0,0,0"
+                                                   Height="18"
+                                                   Foreground="DarkGreen"/>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
                     </StackPanel>
                     <TextBlock Grid.Column="2"
                         Text="{x:Bind Description}"
