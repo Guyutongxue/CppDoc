@@ -33,6 +33,9 @@ namespace CppDoc
             this.InitializeComponent();
             navigation.Header = CppReferenceHeader.CreateHome();
             contentFrame.Navigate(typeof(CppReferencePage), null, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
+
+            // Load cppref index as early as possible
+            var _ = CpprefIndexLoader.Items;
         }
 
         readonly Dictionary<string, Type> pageMap = new()

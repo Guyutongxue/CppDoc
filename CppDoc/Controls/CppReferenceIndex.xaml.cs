@@ -96,7 +96,7 @@ namespace CppDoc.Controls
             Type = type;
         }
     }
-    public delegate void CpprefIndexChosenDelegate(object sender, IndexChosenEventArgs e);
+    public delegate void CpprefIndexChosenEventHandler(object sender, IndexChosenEventArgs e);
 
     class CpprefIndexLoader
     {
@@ -239,7 +239,7 @@ namespace CppDoc.Controls
             this.InitializeComponent();
         }
 
-        public event CpprefIndexChosenDelegate? IndexChosen;
+        public event CpprefIndexChosenEventHandler? IndexChosen;
 
         void suggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs e)
         {

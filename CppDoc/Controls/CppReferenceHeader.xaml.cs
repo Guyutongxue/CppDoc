@@ -44,7 +44,7 @@ namespace CppDoc.Controls
             }
         }
 
-        public event CpprefIndexChosenDelegate? IndexChosen;
+        public event CpprefIndexChosenEventHandler? IndexChosen;
 
         public string Prefix { get; set; }
         public string Title { get; set; }

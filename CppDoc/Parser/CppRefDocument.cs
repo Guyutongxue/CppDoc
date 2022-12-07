@@ -1,6 +1,7 @@
 
 using AngleSharp;
 using AngleSharp.Dom;
+using CppDoc.Controls;
 using CppDoc.Pages;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -43,38 +44,67 @@ namespace CppDoc.Parser
 
         protected RichTextBlock ParseParagraphs(IElement article)
         {
-            var rtb = new RichTextBlock();
-            foreach (var e in article.Children)
+            var rtb = new RichTextBlock() { Padding = new Thickness(0) };
+            Paragraph? inlines = null;
+            var inlineTags = new string[] {
+                "A", "SPAN", "CODE", "B", "I"
+            };
+            foreach (var n in article.ChildNodes)
             {
-                if (e.TagName == "P")
+                if (n is IElement ee && inlineTags.Contains(ee.TagName) 
+                    || n is IText && !string.IsNullOrWhiteSpace(n.TextContent))
                 {
-                    var paragraph = new Paragraph();
-                    foreach (var i in ParseInlines(e))
+                    if (inlines is null)
                     {
-                        paragraph.Inlines.Add(i);
+                        inlines = new Paragraph();
                     }
-                    rtb.Blocks.Add(paragraph);
+                    inlines.Inlines.Add(ParseInline(n));
                 }
-                else if (e.TagName == "UL")
+                else if (n is Element e)
                 {
-                    rtb.Blocks.Add(ParseList(e));
-                }
-                else if (e.TagName == "DL")
-                {
-                    rtb.Blocks.Add(ParseDescriptionList(e));
-                }
-                else if (e.TagName == "H3")
-                {
-                    var para = new Paragraph();
-                    foreach (var i in ParseInlines(e.QuerySelector(".mw-headline")))
+                    if (inlines is not null)
                     {
-                        para.Inlines.Add(i);
+                        rtb.Blocks.Add(inlines);
+                        inlines = null;
                     }
-                    para.FontWeight = new FontWeight(600);
-                    para.FontSize = 20;
-                    para.Margin = new Thickness(0, 20, 0, 10);
-                    rtb.Blocks.Add(para);
+
+                    if (e.TagName == "P")
+                    {
+                        var paragraph = new Paragraph();
+                        foreach (var i in ParseInlines(e))
+                        {
+                            paragraph.Inlines.Add(i);
+                        }
+                        rtb.Blocks.Add(paragraph);
+                    }
+                    else if (e.TagName == "UL")
+                    {
+                        rtb.Blocks.Add(ParseList(e));
+                    }
+                    else if (e.TagName == "DL")
+                    {
+                        rtb.Blocks.Add(ParseDescriptionList(e));
+                    }
+                    else if (e.TagName == "H3")
+                    {
+                        var para = new Paragraph();
+                        foreach (var i in ParseInlines(e.QuerySelector(".mw-headline")))
+                        {
+                            para.Inlines.Add(i);
+                        }
+                        para.FontWeight = new FontWeight(600);
+                        para.FontSize = 20;
+                        para.Margin = new Thickness(0, 20, 0, 10);
+                        rtb.Blocks.Add(para);
+                    } else if (e.TagName == "TABLE" && e.ClassList.Contains("t-dsc-begin"))
+                    {
+                        rtb.Blocks.Add(ParseDescTable(e));
+                    }
                 }
+            }
+            if (inlines is not null)
+            {
+                rtb.Blocks.Add(inlines);
             }
             return rtb;
         }
@@ -93,10 +123,10 @@ namespace CppDoc.Parser
             foreach (var (item, index) in dl.Children.Select((v, i) => (v, i)))
             {
                 if (item.TagName != "DD") continue;
-                var rtb = ParseParagraphs(item);
-                grid.Children.Add(rtb);
-                Grid.SetColumn(rtb, 1);
-                Grid.SetRow(rtb, index);
+                var uiElement = ParseParagraphs(item);
+                grid.Children.Add(uiElement);
+                Grid.SetColumn(uiElement, 1);
+                Grid.SetRow(uiElement, index);
                 grid.RowDefinitions.Add(new RowDefinition());
             }
             grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(10) });
@@ -110,23 +140,88 @@ namespace CppDoc.Parser
             foreach (var (item, index) in list.Children.Select((v, i) => (v, i)))
             {
                 if (item.TagName != "LI") continue;
-                var tb = new TextBlock();
-                foreach (var inline in ParseInlines(item))
-                {
-                    tb.Inlines.Add(inline);
-                }
-                var marker = new TextBlock() { Text = "·" };
+                var rtb = ParseParagraphs(item);
+                var marker = new TextBlock() { Text = "•" };
                 grid.Children.Add(marker);
-                grid.Children.Add(tb);
+                grid.Children.Add(rtb);
                 Grid.SetColumn(marker, 0);
-                Grid.SetColumn(tb, 1);
+                Grid.SetColumn(rtb, 1);
                 Grid.SetRow(marker, index);
-                Grid.SetRow(tb, index);
+                Grid.SetRow(rtb, index);
                 grid.RowDefinitions.Add(new RowDefinition());
             }
             grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             grid.ColumnDefinitions.Add(new ColumnDefinition());
             return UIElementToParagraph(grid);
+        }
+
+        private Inline ParseInline(INode node)
+        {
+            if (node is IElement e)
+            {
+                if (e.TagName == "CODE"
+                    || e.TagName == "TT"
+                    || e.TagName == "SPAN" && (
+                        e.ClassList.Contains("t-lc")
+                        || e.ClassList.Contains("t-c")
+                    ))
+                {
+                    var codeSpan = new Span()
+                    {
+                        FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas")
+                    };
+                    foreach (var i in ParseInlines(e))
+                    {
+                        codeSpan.Inlines.Add(i);
+                    }
+                    return codeSpan;
+                }
+                else if (e.TagName == "A")
+                {
+                    var a = new Hyperlink();
+                    foreach (var i in ParseInlines(e))
+                    {
+                        a.Inlines.Add(i);
+                    }
+                    if (e.Attributes["href"] is IAttr href)
+                    {
+                        if (href.Value.StartsWith("/w/cpp"))
+                        {
+                            var pageLink = href.Value[3..];
+                            var hashIndex = pageLink.IndexOf('#');
+                            if (hashIndex != -1)
+                            {
+                                pageLink = pageLink[..hashIndex];
+                            }
+                            a.Click += (sender, _) =>
+                            {
+                                if (CppReferencePage.CurrentLink != pageLink)
+                                {
+                                    frame.Navigate(typeof(CppReferencePage), new CppReferenceNavigateParameter(pageLink));
+                                }
+                            };
+                        }
+                        else
+                        {
+                            var baseUri = new Uri("https://zh.cppreference.com");
+                            a.NavigateUri = new Uri(baseUri, href.Value);
+                        }
+                    }
+                    return a;
+                }
+                else if (e.TagName == "BR")
+                {
+                    return new LineBreak();
+                }
+                else
+                {
+                    return new Run() { Text = node.TextContent };
+                }
+            }
+            else
+            {
+                return new Run() { Text = node.TextContent.Trim() };
+            }
         }
 
         private List<Inline> ParseInlines(IElement? p)
@@ -135,71 +230,14 @@ namespace CppDoc.Parser
             if (p is null) return inlineList;
             foreach (var n in p.ChildNodes)
             {
-                if (n is IElement e)
-                {
-                    if (e.TagName == "CODE"
-                        || e.TagName == "TT"
-                        || e.TagName == "SPAN" && (
-                            e.ClassList.Contains("t-lc")
-                            || e.ClassList.Contains("t-c")
-                        ))
-                    {
-                        var codeSpan = new Span()
-                        {
-                            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas")
-                        };
-                        foreach (var i in ParseInlines(e))
-                        {
-                            codeSpan.Inlines.Add(i);
-                        }
-                        inlineList.Add(codeSpan);
-                    }
-                    else if (e.TagName == "A")
-                    {
-                        var a = new Hyperlink();
-                        foreach (var i in ParseInlines(e))
-                        {
-                            a.Inlines.Add(i);
-                        }
-                        if (e.Attributes["href"] is IAttr href) {
-                            if (href.Value.StartsWith("/w/cpp"))
-                            {
-                                var pageLink = href.Value[3..];
-                                var hashIndex = pageLink.IndexOf('#');
-                                if (hashIndex != -1)
-                                {
-                                    pageLink = pageLink[..hashIndex];
-                                }
-                                a.Click += (sender, _) =>
-                                {
-                                    if (CppReferencePage.CurrentLink != pageLink)
-                                    {
-                                        frame.Navigate(typeof(CppReferencePage), new CppReferenceNavigateParameter(pageLink));
-                                    }
-                                };
-                            } else
-                            {
-                                var baseUri = new Uri("https://zh.cppreference.com");
-                                a.NavigateUri = new Uri(baseUri, href.Value);
-                            }
-                        }
-                        inlineList.Add(a);
-                    }
-                    else if (e.TagName == "BR")
-                    {
-                        inlineList.Add(new LineBreak());
-                    }
-                    else
-                    {
-                        inlineList.Add(new Run() { Text = n.TextContent });
-                    }
-                }
-                else
-                {
-                    inlineList.Add(new Run() { Text = n.TextContent });
-                }
+                inlineList.Add(ParseInline(n));
             }
             return inlineList;
+        }
+
+        private Paragraph ParseDescTable(IElement p)
+        {
+            return UIElementToParagraph(new CppReferenceDescriptionList(p));
         }
     }
 

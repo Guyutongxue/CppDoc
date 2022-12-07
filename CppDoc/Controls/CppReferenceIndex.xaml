@@ -45,9 +45,8 @@
                     </StackPanel>
                     <TextBlock Text="{x:Bind Description}" 
                                FontSize="10" 
-                               
-                                   FontWeight="Normal"
-                               Foreground="Gray"></TextBlock>
+                                FontWeight="Normal"
+                               Foreground="{ThemeResource TextFillColorSecondary}"></TextBlock>
                 </StackPanel>
             </DataTemplate>
         </AutoSuggestBox.ItemTemplate>
